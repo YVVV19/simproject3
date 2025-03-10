@@ -1,15 +1,14 @@
 from typing import Optional, List
 from sqlmodel import Relationship, SQLModel, Field
 from pydantic import field_validator
-from . import Team
 
 
-class Result(SQLModel):
+class Result(SQLModel, table=True):
     id: Optional[int] = Field(primary_key=True, default=None) 
     score: int
 
 
-    team: Team = Relationship(back_populates="result")
+    team: Optional["Team"] = Relationship(back_populates="result")
 
 
     @field_validator("score")

@@ -1,6 +1,5 @@
 from typing import Optional, List
 from sqlmodel import Relationship, SQLModel, Field
-from . import Team
 
 
 class Tournament(SQLModel, table=True):
@@ -11,4 +10,4 @@ class Tournament(SQLModel, table=True):
     rules: str
 
 
-    teams: List[Team] = Relationship(back_populates="tournament")
+    teams: List["Team"] = Relationship(back_populates="tournament")
