@@ -41,4 +41,6 @@ async def delete_user(nickname:str):
             session.delete(user)
             session.commit()
             return {"message": "Користувача видалено", "user": user}
+
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+
