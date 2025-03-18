@@ -1,3 +1,3 @@
-from . import ouath2_jwt, create, delete, read, update
+from . import ouath2_jwt
 
 from ..db import Config, User, Team, Tournament, Result
