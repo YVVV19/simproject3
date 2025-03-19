@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 from . import SECRET, ALGORITHM, Config, User
 
 
-async def role_checker(token, session):
+async def role_checker(token):
     with Config.SESSION as session:
         decoded = jwt.decode(token, SECRET, algorithms=[ALGORITHM])
         user = session.exec(select(User).where(User.username == decoded.get("sub"))).first()

@@ -1,7 +1,7 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
 from sqlmodel import select
 
-from . import Config, User
+from . import Config, User, role_checker, oauth2_scheme
 from ..main import app
 
 
@@ -34,8 +34,9 @@ async def update_user(user:User):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
 
 @app.delete("/user")
-async def delete_user(nickname:str):
+async def delete_user(nickname:str, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
+        role_checker(token)
         user = session.exec(select(User).where(User.username == nickname)).first()
         if user:
             session.delete(user)
