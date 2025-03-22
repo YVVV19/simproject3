@@ -18,7 +18,7 @@ async def read_team(token = Depends(oauth2_scheme)):
 @app.post("/create-team/")
 async def create_team(team:Team, user_uucs: List[str], token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
-        role_checker(token)
+        role_checker(token, session)
         val = session.exec(select(Team).where(Team.name == team.name)).first()
         if val:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="We already have team with this name")
@@ -35,7 +35,7 @@ async def create_team(team:Team, user_uucs: List[str], token = Depends(oauth2_sc
 @app.put("/update-team/")
 async def update_team(team_id: str, team:Team,  token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
-        role_checker(token)
+        role_checker(token, session)
         team_data = session.get(Team, team_id)
         if not team_data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"We dont have team with id:{team_id}") 
@@ -49,7 +49,7 @@ async def update_team(team_id: str, team:Team,  token = Depends(oauth2_scheme)):
 @app.delete("/delete-team/")
 async def delete_team(team:Team, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
-        role_checker(token)
+        role_checker(token, session)
         session.delete(team)
         session.commit()
         return "Team successfully delete"

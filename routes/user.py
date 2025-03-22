@@ -36,7 +36,7 @@ async def update_user(user:User):
 @app.delete("/user")
 async def delete_user(nickname:str, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
-        role_checker(token)
+        role_checker(token, session)
         user = session.exec(select(User).where(User.username == nickname)).first()
         if user:
             session.delete(user)
