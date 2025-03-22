@@ -6,8 +6,8 @@ from sqlmodel import select
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 
-from . import Config, User, Tournament
-from ..main import app
+from db import Config, User, Tournament
+from main import app
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 load_dotenv()

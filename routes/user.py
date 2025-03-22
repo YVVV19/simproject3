@@ -1,8 +1,10 @@
 from fastapi import HTTPException, status, Depends
 from sqlmodel import select
 
-from . import Config, User, role_checker, oauth2_scheme
-from ..main import app
+from db import Config, User
+from .ouath2_jwt import oauth2_scheme
+from ._role_checker import role_checker
+from main import app
 
 
 @app.get("/user")

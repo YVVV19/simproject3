@@ -6,4 +6,4 @@ app=FastAPI()
 Config.migrate()
 
 
-from . import routes
+from routes import websocket, team, tournament, user, ouath2_jwt

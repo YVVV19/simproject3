@@ -2,7 +2,8 @@ from jose import jwt
 from sqlmodel import select
 from fastapi import HTTPException, status
 
-from . import SECRET, ALGORITHM, Config, User
+from .ouath2_jwt import SECRET, ALGORITHM
+from db import User
 
 
 async def role_checker(token, session):
