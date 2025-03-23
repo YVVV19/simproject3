@@ -7,7 +7,7 @@ class Result(SQLModel, table=True):
     id: Optional[int] = Field(primary_key=True, default=None) 
     score: int
 
-
+    team_id: int = Field(foreign_key="team.id")
     team: Optional["Team"] = Relationship(back_populates="result")
 
 

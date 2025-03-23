@@ -25,7 +25,7 @@ async def token(form: OAuth2PasswordRequestForm = Depends()):
             try:
                 decoded = jwt.decode(user.password, SECRET, algorithms=[ALGORITHM])["password"]
                 if decoded == form.password:
-                    access_token = jwt.encode({"sub": user.username, "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE)}, SECRET, algorithm=ALGORITHM)
+                    access_token = jwt.encode({"sub": user.username, "exp": datetime.utcnow() + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE))}, SECRET, algorithm=ALGORITHM)
                     return{
                         "access_token": access_token,
                         "token_type": "bearer",

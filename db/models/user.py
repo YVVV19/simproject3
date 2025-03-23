@@ -5,12 +5,12 @@ import re
 
 
 class User(SQLModel, table=True):
-    id: Optional[int] = Field(primary_key=True, default=None)    
+    id: Optional[int] = Field(primary_key=True, default=None, )    
     username: str
     gamer_nickname: str
     email: EmailStr
     password: str
-    uuc: str
+    uuc: str 
     role: Optional[str] = Field("User")
 
 
@@ -31,4 +31,12 @@ class User(SQLModel, table=True):
     def password(cls,v):
         if not re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"):
             raise ValueError("Your password cant go through validation")
+        return v
+    
+
+    @field_validator("uuc")
+    @classmethod
+    def uuc(cls, v):
+        if len(v) != 8:
+            raise ValueError("Your uuc must have 8 symbols")
         return v
