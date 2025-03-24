@@ -55,3 +55,4 @@ async def delete_team(team:Team, token = Depends(oauth2_scheme)):
         session.delete(team)
         session.commit()
         return "Team successfully delete"
+    
