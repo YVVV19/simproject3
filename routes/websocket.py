@@ -1,9 +1,11 @@
 from typing import List
-from fastapi import Depends, HTTPException, status, WebSocket, Request
+from fastapi import Depends, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 
+from db import Config, User, Team, Message
+from .ouath2_jwt import oauth2_scheme
+from ._role_checker import role_checker
 from main import app
-
 
 
 class ConnectionManager:
@@ -23,7 +25,23 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-
+@app.websocket("/ws/{token}")
+async def websocket_endpoint(websocket: WebSocket, token = Depends(oauth2_scheme)):
+    async with Config.SESSION as session:
+        try:
+            user = await role_checker(token, session)
+            await manager.connect(websocket)
+            while True:
+                data = await websocket.receive_text()
+                message = Message(text=data, sender_id=user.id)
+                session.add(message)
+                session.commit()
+                await manager.broadcast(f"{user.username}: {data}")
+        except HTTPException as ex:
+            await websocket.send_text(ex.detail)
+            await websocket.close()
+        except WebSocketDisconnect:
+            manager.disconnect(websocket)
 
 user_page = """
 <!DOCTYPE html>
