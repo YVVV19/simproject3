@@ -45,15 +45,3 @@ async def regist_user(user:User):
         session.commit()
         session.refresh(user)
         return user
-    
-
-@app.get("/add_tournament")
-async def add_tournament(tournament: Tournament, token = Depends(oauth2_scheme)):
-    with Config.SESSION as session:
-        decoded = jwt.decode(token, SECRET, algorithms=[ALGORITHM])
-        user = session.exec(select(User).where(User.username == decoded.get("sub"))).first()
-        if user.role == "Admin":
-            session.add(tournament)
-            session.commit()
-            session.refresh(tournament)
-            return tournament

@@ -8,7 +8,7 @@ from ._role_checker import role_checker
 from main import app
 
 
-@app.post("/add_tournament")
+@app.post("/add_tournament/")
 async def add_tournament(tournament: Tournament, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token, session)
@@ -17,14 +17,24 @@ async def add_tournament(tournament: Tournament, token = Depends(oauth2_scheme))
         session.refresh(tournament)
         return tournament
     
-@app.get("/tournament")
-async def read_tournament():
+@app.get("/all-tournament/")
+async def read_all_tournament():
     with Config.SESSION as session:
         data = session.exec(select(Tournament)).all()
         if not data:
             raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="We dont have any tournament")
         return data
     
+
+@app.get("/tournament/")
+async def read_tournament_by_name(tournament_name:str):
+    with Config.SESSION as session:
+        data = session.exec(select(Tournament).where(Tournament.name == tournament_name)).first()
+        if not data:
+            raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="We dont have any tournament")
+        return data
+    
+
 @app.put("/update-tournament/")
 async def update_tournament(tournament_id: str, tournament:Tournament,  token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
@@ -40,9 +50,10 @@ async def update_tournament(tournament_id: str, tournament:Tournament,  token = 
     
 
 @app.delete("/delete-tournament/")
-async def delete_tournament(tournament:Tournament, token = Depends(oauth2_scheme)):
+async def delete_tournament(tournament_name:str, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token, session)
-        session.delete(tournament)
+        data = session.exec(select(Tournament).where(Tournament.name == tournament_name)).first()
+        session.delete(data)
         session.commit()
         return "tournament successfully delete"

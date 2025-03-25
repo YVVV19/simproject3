@@ -7,15 +7,23 @@ from ._role_checker import role_checker
 from main import app
 
 
-@app.get("/user")
-async def get_user(nickname:str):
+@app.get("/user/")
+async def exec_user():
+    with Config.SESSION as session:
+        users = session.exec(select(User)).all()
+        if users:
+            return {"message": "Користувачів знайдено", "users": users}
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+
+@app.get("/user-by-id/")
+async def exec_user_by_nickname(nickname:str):
     with Config.SESSION as session:
         user = session.exec(select(User).where(User.username == nickname)).first()
         if user:
             return {"message": "Користувач знайдений", "user": user}
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
 
-@app.post("/user")
+@app.post("/create-user/")
 async def create_user(user:User):
     with Config.SESSION as session:
         if session.exec(select(User).where(User.username == user.username)).first():
@@ -25,7 +33,7 @@ async def create_user(user:User):
         session.refresh(user)
         return {"message": "Користувача створено", "user": user}
 
-@app.put("/user")
+@app.put("/update-user/")
 async def update_user(user:User):
     with Config.SESSION as session:
         if session.exec(select(User).where(User.username == user.username)).first():
@@ -35,7 +43,7 @@ async def update_user(user:User):
             return {"message": "Користувача оновлено", "user": user}
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
 
-@app.delete("/user")
+@app.delete("/delete-user/")
 async def delete_user(nickname:str, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token, session)

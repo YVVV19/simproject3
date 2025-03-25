@@ -9,7 +9,7 @@ from main import app
 
 
 @app.get("/read-team/")
-async def read_team(token = Depends(oauth2_scheme)):
+async def read_team():
     with Config.SESSION as session:
         data = session.exec(select(Team)).all()
         if not data:
@@ -27,7 +27,7 @@ async def create_team(team:Team, user_uucs: List[str], token = Depends(oauth2_sc
         players = session.exec(select(User).where(User.uuc.in_(user_uucs))).all()
         if not players:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No uuc was capture")
-        team_data = Team(name=team.name, descripton=team.descripton, users=players)
+        team_data = Team(name=team.name, users=players, result=None)
         session.add(team_data)
         session.commit()
         session.refresh(team_data)
@@ -49,10 +49,11 @@ async def update_team(team_id: str, team:Team,  token = Depends(oauth2_scheme)):
     
 
 @app.delete("/delete-team/")
-async def delete_team(team:Team, token = Depends(oauth2_scheme)):
+async def delete_team(team_name:str, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token, session)
-        session.delete(team)
+        data = session.exec(select(Team).where(Team.name == team_name)).first()
+        session.delete(data)
         session.commit()
         return "Team successfully delete"
     
