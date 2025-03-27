@@ -15,6 +15,7 @@ load_dotenv()
 SECRET = getenv("SECRET_TOKEN")
 ALGORITHM = getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE = getenv("TOKEN_EXPIRE")
+ROLE = getenv("SECRET_ROLE")
 
 
 @app.post("/token/")
@@ -35,10 +36,25 @@ async def token(form: OAuth2PasswordRequestForm = Depends()):
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authority")
 
 
-@app.post("/registration")
+@app.post("/registration/")
 async def regist_user(user:User):
     jwt_token = jwt.encode({"password": user.password}, SECRET, algorithm=ALGORITHM)
     user.password = jwt_token
+    user.role = "USER"
+
+    with Config.SESSION as session:
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return user
+    
+
+
+@app.post("/admin-registration/", include_in_schema=False)
+async def regist_admin(user:User):
+    jwt_token = jwt.encode({"password": user.password}, SECRET, algorithm=ALGORITHM)
+    user.password = jwt_token
+    user.role = ROLE
 
     with Config.SESSION as session:
         session.add(user)
