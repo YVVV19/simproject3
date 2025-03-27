@@ -2,7 +2,7 @@ from typing import List
 from fastapi import Depends, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 
-from db import Config, User, Team, Message
+from db import Config, Message
 from .ouath2_jwt import oauth2_scheme
 from ._role_checker import role_checker
 from main import app

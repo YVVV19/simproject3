@@ -15,7 +15,7 @@ async def exec_user():
             return {"message": "Користувачів знайдено", "users": users}
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
 
-@app.get("/user-by-id/")
+@app.get("/user-by-nickname/")
 async def exec_user_by_nickname(nickname:str):
     with Config.SESSION as session:
         user = session.exec(select(User).where(User.username == nickname)).first()
@@ -28,6 +28,7 @@ async def create_user(user:User):
     with Config.SESSION as session:
         if session.exec(select(User).where(User.username == user.username)).first():
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already exists")
+        user.role = "USER"
         session.add(user)
         session.commit()
         session.refresh(user)
@@ -36,12 +37,16 @@ async def create_user(user:User):
 @app.put("/update-user/")
 async def update_user(user:User):
     with Config.SESSION as session:
-        if session.exec(select(User).where(User.username == user.username)).first():
-            session.add(user)
-            session.commit()
-            session.refresh(user)
-            return {"message": "Користувача оновлено", "user": user}
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+        user_data = session.exec(select(User).where(User.username == user.username)).first()
+        if not user_data:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"We dont have such user") 
+        user.role = "USER"
+        update_data = user.model_dump(exclude_unset=True)
+        user_data.sqlmodel_update(update_data)
+        session.commit()
+        session.refresh(user_data)
+        return {"message": "Користувача оновлено", "user": user}
+        
 
 @app.delete("/delete-user/")
 async def delete_user(nickname:str, token = Depends(oauth2_scheme)):

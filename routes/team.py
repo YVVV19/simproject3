@@ -42,7 +42,7 @@ async def update_team(team_id: str, team:Team,  token = Depends(oauth2_scheme)):
         if not team_data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"We dont have team with id:{team_id}") 
         update_data = team.model_dump(exclude_unset=True)
-        vars(team_data).update(update_data)
+        team_data.sqlmodel_update(update_data)
         session.commit()
         session.refresh(team_data)
         return {"Info was successfully update to :": f"{team_data}"}
