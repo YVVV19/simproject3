@@ -1,8 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from sqlmodel import select
-from typing import List
 
-from db import Config, User, Tournament
+from db import Config, Tournament
 from .ouath2_jwt import oauth2_scheme
 from ._role_checker import role_checker
 from main import app

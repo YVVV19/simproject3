@@ -2,7 +2,7 @@ from typing import List
 from fastapi import Depends, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 
-from db import Config, User, Team, Message
+from db import Config
 from .ouath2_jwt import oauth2_scheme
 from ._role_checker import role_checker
 from main import app
@@ -29,17 +29,18 @@ manager = ConnectionManager()
 async def websocket_endpoint(websocket: WebSocket, token = Depends(oauth2_scheme)):
     async with Config.SESSION as session:
         try:
-            user = await role_checker(token, session)
+            if not await role_checker(token, session):  
+                raise HTTPException(status_code=403, detail="You are not authorized to send messages")
             await manager.connect(websocket)
+
             while True:
                 data = await websocket.receive_text()
-                message = Message(text=data, sender_id=user.id)
-                session.add(message)
-                session.commit()
-                await manager.broadcast(f"{user.username}: {data}")
+                await manager.broadcast(data)
+
         except HTTPException as ex:
             await websocket.send_text(ex.detail)
             await websocket.close()
+
         except WebSocketDisconnect:
             manager.disconnect(websocket)
 
@@ -63,7 +64,7 @@ user_page = """
 </html>
 """
 #Page with user chat
-@app.get("/")
+@app.get("/ws/user")
 async def get_user_page():
     return HTMLResponse(user_page)
 
@@ -94,6 +95,6 @@ admin_page = """
 </html>
 """
 #Page with admin chat
-@app.get("/admin")
+@app.get("/ws/admin")
 async def get_admin_page():
     return HTMLResponse(admin_page)
