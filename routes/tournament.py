@@ -8,7 +8,7 @@ from main import app
 
 
 #Endpoint for add tournament
-@app.post("/add_tournament/", summary="Add tournament", tags="Tournament")
+@app.post("/add_tournament/", summary="Add tournament", tags=["Tournament"])
 async def add_tournament(tournament: Tournament, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token, session)
@@ -19,7 +19,7 @@ async def add_tournament(tournament: Tournament, token = Depends(oauth2_scheme))
 
 
 #Endpoint for getting all tournaments
-@app.get("/all-tournament/", summary="Get all tournaments", tags="Tournament")
+@app.get("/all-tournament/", summary="Get all tournaments", tags=["Tournament"])
 async def read_all_tournament():
     with Config.SESSION as session:
         data = session.exec(select(Tournament)).all()
@@ -29,7 +29,7 @@ async def read_all_tournament():
 
 
 #Endpoint for getting tournament by name
-@app.get("/tournament/", summary="Get tournament", tags="Tournament")
+@app.get("/tournament/", summary="Get tournament", tags=["Tournament"])
 async def read_tournament_by_name(tournament_name:str):
     with Config.SESSION as session:
         data = session.exec(select(Tournament).where(Tournament.name == tournament_name)).first()
@@ -39,7 +39,7 @@ async def read_tournament_by_name(tournament_name:str):
 
 
 #Endpoint for updating tournament
-@app.put("/update-tournament/", summary="Update tournament", tags="Tournament")
+@app.put("/update-tournament/", summary="Update tournament", tags=["Tournament"])
 async def update_tournament(tournament_id: str, tournament:Tournament,  token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token, session)
@@ -54,7 +54,7 @@ async def update_tournament(tournament_id: str, tournament:Tournament,  token = 
 
 
 #Endpoint for deleting tournament
-@app.delete("/delete-tournament/", summary="Delete tournament", tags="Tournament")
+@app.delete("/delete-tournament/", summary="Delete tournament", tags=["Tournament"])
 async def delete_tournament(tournament_name:str, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token, session)

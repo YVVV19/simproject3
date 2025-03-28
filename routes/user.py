@@ -8,7 +8,7 @@ from main import app
 
 
 #Endpoint for getting all users
-@app.get("/user/", summary="Get all users", tags="User")
+@app.get("/user/", summary="Get all users", tags=["User"])
 async def exec_user():
     with Config.SESSION as session:
         users = session.exec(select(User)).all()
@@ -18,7 +18,7 @@ async def exec_user():
 
 
 #Endpoint for getting user by nickname
-@app.get("/user-by-nickname/", summary="Get user by nickname", tags="User")
+@app.get("/user-by-nickname/", summary="Get user by nickname", tags=["User"])
 async def exec_user_by_nickname(nickname:str):
     with Config.SESSION as session:
         user = session.exec(select(User).where(User.username == nickname)).first()
@@ -28,7 +28,7 @@ async def exec_user_by_nickname(nickname:str):
 
 
 #Endpoint for creating user
-@app.post("/create-user/", summary="Create user", tags="User")
+@app.post("/create-user/", summary="Create user", tags=["User"])
 async def create_user(user:User):
     with Config.SESSION as session:
         if session.exec(select(User).where(User.username == user.username)).first():
@@ -41,7 +41,7 @@ async def create_user(user:User):
 
 
 #Endpoint for updating user
-@app.put("/update-user/", summary="Update user", tags="User")
+@app.put("/update-user/", summary="Update user", tags=["User"])
 async def update_user(user:User):
     with Config.SESSION as session:
         user_data = session.exec(select(User).where(User.username == user.username)).first()
@@ -56,7 +56,7 @@ async def update_user(user:User):
 
 
 #Endpoint for deleting user
-@app.delete("/delete-user/", summary="Delete user", tags="User")
+@app.delete("/delete-user/", summary="Delete user", tags=["User"])
 async def delete_user(nickname:str, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token, session)

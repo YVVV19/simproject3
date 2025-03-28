@@ -37,7 +37,7 @@ async def token(form: OAuth2PasswordRequestForm = Depends()):
 
 
 #Endpoint for registration user
-@app.post("/registration/", summary="Registration for users", tags="Registration")
+@app.post("/registration/", summary="Registration for users", tags=["Registration"])
 async def regist_user(user:User):
     jwt_token = jwt.encode({"password": user.password}, SECRET, algorithm=ALGORITHM)
     user.password = jwt_token
@@ -51,7 +51,7 @@ async def regist_user(user:User):
 
 
 #Endpoint for registration admin
-@app.post("/admin-registration/", include_in_schema=False)
+@app.post("/admin-registration/")
 async def regist_admin(user:User):
     jwt_token = jwt.encode({"password": user.password}, SECRET, algorithm=ALGORITHM)
     user.password = jwt_token

@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from db import Config
+from db.config import Config
 
 
 app=FastAPI()

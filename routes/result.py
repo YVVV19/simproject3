@@ -8,7 +8,7 @@ from main import app
 
 
 #Endpoint for getting result of tournament
-@app.get("get-result-by-team-name", summary="Get result of tournament", tags="Result")
+@app.get("get-result-by-team-name", summary="Get result of tournament", tags=["Result"])
 async def get_result_by_name(team_name:str):
     with Config.SESSION as session:
         data = session.exec(select(Team).where(Team.name == team_name)).first()
@@ -16,7 +16,7 @@ async def get_result_by_name(team_name:str):
 
 
 #Endpoint for updating result of tournament
-@app.put("/update-team/", summary="Update result of tournament", tags="Result")
+@app.put("/update-team/", summary="Update result of tournament", tags=["Result"])
 async def update_team(team_name: str, score:Result, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token, session)
@@ -30,7 +30,7 @@ async def update_team(team_name: str, score:Result, token = Depends(oauth2_schem
 
 
 #Endpoint for deleting result of tournament
-@app.delete("/delete-team/", summary="Delete result of tournament", tags="Result")
+@app.delete("/delete-team/", summary="Delete result of tournament", tags=["Result"])
 async def delete_team(team_name:str, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token, session)

@@ -2,12 +2,15 @@ from fastapi import Depends, HTTPException, status
 from sqlmodel import select
 from typing import List
 
-from . import Config, User, Team, oauth2_scheme, role_checker
-from ..main import app
+from db import Config 
+from db.models import User, Team
+from .ouath2_jwt import oauth2_scheme 
+from ._role_checker import role_checker
+from main import app
 
 
 #Endpoint for getting teams
-@app.get("/read-team/", summary="Get all teams", tags="Team")
+@app.get("/read-team/", summary="Get all teams", tags=["Team"])
 async def read_team(token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         data = session.exec(select(Team)).all()
@@ -17,7 +20,7 @@ async def read_team(token = Depends(oauth2_scheme)):
 
 
 #Endpoint for creating team
-@app.post("/create-team/", summary="Create team", tags="Team")
+@app.post("/create-team/", summary="Create team", tags=["Team"])
 async def create_team(team:Team, user_uucs: List[str], token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token)
@@ -35,7 +38,7 @@ async def create_team(team:Team, user_uucs: List[str], token = Depends(oauth2_sc
 
 
 #Endpoint for updating team
-@app.put("/update-team/", summary="Update team", tags="Team")
+@app.put("/update-team/", summary="Update team", tags=["Team"])
 async def update_team(team_id: str, team:Team,  token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token)
@@ -50,7 +53,7 @@ async def update_team(team_id: str, team:Team,  token = Depends(oauth2_scheme)):
 
 
 ##Endpoint for deleting team
-@app.delete("/delete-team/", summary="Delete team", tags="Team")
+@app.delete("/delete-team/", summary="Delete team", tags=["Team"])
 async def delete_team(team:Team, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token)
