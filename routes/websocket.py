@@ -2,7 +2,7 @@ from typing import List
 from fastapi import Depends, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 
-from db import Config, Message
+from db import Config, User, Team, Message
 from .ouath2_jwt import oauth2_scheme
 from ._role_checker import role_checker
 from main import app
@@ -62,7 +62,7 @@ user_page = """
 </body>
 </html>
 """
-
+#Page with user chat
 @app.get("/")
 async def get_user_page():
     return HTMLResponse(user_page)
@@ -93,7 +93,7 @@ admin_page = """
 </body>
 </html>
 """
-
+#Page with admin chat
 @app.get("/admin")
 async def get_admin_page():
     return HTMLResponse(admin_page)

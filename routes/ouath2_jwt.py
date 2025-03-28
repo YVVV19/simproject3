@@ -6,7 +6,7 @@ from sqlmodel import select
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 
-from db import Config, User
+from db import Config, User, Tournament
 from main import app
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -36,7 +36,8 @@ async def token(form: OAuth2PasswordRequestForm = Depends()):
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authority")
 
 
-@app.post("/registration/")
+#Endpoint for registration user
+@app.post("/registration/", summary="Registration for users", tags="Registration")
 async def regist_user(user:User):
     jwt_token = jwt.encode({"password": user.password}, SECRET, algorithm=ALGORITHM)
     user.password = jwt_token
@@ -47,9 +48,9 @@ async def regist_user(user:User):
         session.commit()
         session.refresh(user)
         return user
-    
 
 
+#Endpoint for registration admin
 @app.post("/admin-registration/", include_in_schema=False)
 async def regist_admin(user:User):
     jwt_token = jwt.encode({"password": user.password}, SECRET, algorithm=ALGORITHM)
