@@ -7,23 +7,28 @@ from ._role_checker import role_checker
 from main import app
 
 
-@app.get("/user/")
+#Endpoint for getting all users
+@app.get("/user/", summary="Get all users", tags="User")
 async def exec_user():
     with Config.SESSION as session:
         users = session.exec(select(User)).all()
         if users:
-            return {"message": "Користувачів знайдено", "users": users}
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+            return {f"All users: {users}"}
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found users")
 
-@app.get("/user-by-nickname/")
+
+#Endpoint for getting user by nickname
+@app.get("/user-by-nickname/", summary="Get user by nickname", tags="User")
 async def exec_user_by_nickname(nickname:str):
     with Config.SESSION as session:
         user = session.exec(select(User).where(User.username == nickname)).first()
         if user:
-            return {"message": "Користувач знайдений", "user": user}
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+            return {f"User with nickname {nickname}: {user}"}
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found user by nickname")
 
-@app.post("/create-user/")
+
+#Endpoint for creating user
+@app.post("/create-user/", summary="Create user", tags="User")
 async def create_user(user:User):
     with Config.SESSION as session:
         if session.exec(select(User).where(User.username == user.username)).first():
@@ -32,23 +37,26 @@ async def create_user(user:User):
         session.add(user)
         session.commit()
         session.refresh(user)
-        return {"message": "Користувача створено", "user": user}
+        return {f"User created: {user}"}
 
-@app.put("/update-user/")
+
+#Endpoint for updating user
+@app.put("/update-user/", summary="Update user", tags="User")
 async def update_user(user:User):
     with Config.SESSION as session:
         user_data = session.exec(select(User).where(User.username == user.username)).first()
         if not user_data:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"We dont have such user") 
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"We dont have such user")
         user.role = "USER"
         update_data = user.model_dump(exclude_unset=True)
         user_data.sqlmodel_update(update_data)
         session.commit()
         session.refresh(user_data)
-        return {"message": "Користувача оновлено", "user": user}
-        
+        return {f"User updated: {user_data}"}
 
-@app.delete("/delete-user/")
+
+#Endpoint for deleting user
+@app.delete("/delete-user/", summary="Delete user", tags="User")
 async def delete_user(nickname:str, token = Depends(oauth2_scheme)):
     with Config.SESSION as session:
         role_checker(token, session)
@@ -56,7 +64,6 @@ async def delete_user(nickname:str, token = Depends(oauth2_scheme)):
         if user:
             session.delete(user)
             session.commit()
-            return {"message": "Користувача видалено", "user": user}
+            return {f"User with nickname {nickname} deleted"}
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
-
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found user by nickname")
