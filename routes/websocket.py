@@ -1,100 +1,87 @@
 from typing import List
-from fastapi import Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import Depends, WebSocket, WebSocketDisconnect, BackgroundTasks
 from fastapi.responses import HTMLResponse
 
-from db import Config
 from .ouath2_jwt import oauth2_scheme
 from ._role_checker import role_checker
 from main import app
 
+connections: List[WebSocket] = []
 
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: List[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
-
-    async def broadcast(self, message: str):
-        for connection in self.active_connections:
-            await connection.send_text(message)
-
-manager = ConnectionManager()
-
-@app.websocket("/ws/{token}")
-async def websocket_endpoint(websocket: WebSocket, token = Depends(oauth2_scheme)):
-    async with Config.SESSION as session:
-        try:
-            if not await role_checker(token, session):  
-                raise HTTPException(status_code=403, detail="You are not authorized to send messages")
-            await manager.connect(websocket)
-
-            while True:
-                data = await websocket.receive_text()
-                await manager.broadcast(data)
-
-        except HTTPException as ex:
-            await websocket.send_text(ex.detail)
-            await websocket.close()
-
-        except WebSocketDisconnect:
-            manager.disconnect(websocket)
-
-user_page = """
+html = """
 <!DOCTYPE html>
 <html>
-<head><title>Chat</title></head>
+<head>
+    <title>Simple WebSocket Chat</title>
+</head>
 <body>
-    <h2>Chat Messages</h2>
-    <ul id="messages"></ul>
-    <script>
-        let ws = new WebSocket("ws://localhost:8000/ws/user_token");
-        ws.onmessage = event => {
-            let messages = document.getElementById("messages");
-            let li = document.createElement("li");
-            li.appendChild(document.createTextNode(event.data));
-            messages.appendChild(li);
-        };
-    </script>
-</body>
-</html>
-"""
-#Page with user chat
-@app.get("/ws/user")
-async def get_user_page():
-    return HTMLResponse(user_page)
+    <h1>WebSocket Chat</h1>
+    <div id='messages'></div>
+    <input type='text' id='messageInput'>
+    <button onclick='sendMessage()'>Send</button>
 
-admin_page = """
-<!DOCTYPE html>
-<html>
-<head><title>Admin Chat</title></head>
-<body>
-    <h2>Admin Chat</h2>
-    <input id="message" type="text" />
-    <button onclick="sendMessage()">Send</button>
-    <ul id="messages"></ul>
     <script>
-        let ws = new WebSocket("ws://localhost:8000/ws/admin_token");
-        ws.onmessage = event => {
-            let messages = document.getElementById("messages");
-            let li = document.createElement("li");
-            li.appendChild(document.createTextNode(event.data));
-            messages.appendChild(li);
+        const websocket = new WebSocket("ws://localhost:8000/ws");
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+
+        websocket.onopen = function(event) {
+            console.log("WebSocket connection opened");
         };
+
+        websocket.onmessage = function(event) {
+            const message = document.createElement('div');
+            message.textContent = event.data;
+            messagesDiv.appendChild(message);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        };
+
+        websocket.onclose = function(event) {
+            console.log("WebSocket connection closed");
+        };
+
+        websocket.onerror = function(event) {
+            console.error("WebSocket error:", event);
+        };
+
         function sendMessage() {
-            let input = document.getElementById("message");
-            ws.send(input.value);
-            input.value = "";
+            if (websocket.readyState === WebSocket.OPEN) {
+                const message = messageInput.value;
+                websocket.send(message);
+                messageInput.value = '';
+            } else {
+                console.error("WebSocket is not open.");
+            }
         }
     </script>
 </body>
 </html>
 """
-#Page with admin chat
-@app.get("/ws/admin")
-async def get_admin_page():
-    return HTMLResponse(admin_page)
+
+@app.get("/websocket")
+async def get():
+    return HTMLResponse(html)
+
+async def broadcast(message: str):
+    for connection in connections:
+        try:
+            await connection.send_text(message)
+        except RuntimeError as e:
+            print(f"Error sending message to connection {connection}: {e}")
+            connections.remove(connection)
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    connections.append(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await broadcast(f"Organisation: {data}")
+    except WebSocketDisconnect:
+        print(f"Client disconnected: {websocket}")
+        connections.remove(websocket)
+    except Exception as e:
+        print(f"WebSocket error for connection {websocket}: {e}")
+        if websocket in connections:
+            connections.remove(websocket)
