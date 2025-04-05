@@ -17,8 +17,6 @@ class User(SQLModel, table=True):
     team_id: Optional[int] = Field(default=None, foreign_key="team.id")
     team: Optional["Team"] = Relationship(back_populates="users")
 
-    messages: List["Message"] = Relationship(back_populates="sender")
-
 
     @field_validator("username")
     @classmethod
